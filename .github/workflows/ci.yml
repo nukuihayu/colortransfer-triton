@@ -1,0 +1,117 @@
+name: Test, build and release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: colortransfer-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install build twine ruff
+      - run: ruff check . && ruff format --check .
+      - run: python -m build
+      - run: python -m twine check dist/*
+      - name: Verify versions and archive contents
+        env:
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+        run: python tools/check_release.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distribution
+          path: dist/*
+          if-no-files-found: error
+
+  cpu:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        python: ['3.10', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: distribution
+          path: dist
+      - run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install pytest numpy Pillow
+      - run: python -m pip install --no-deps dist/*.whl
+      - run: python -m pytest -q tests
+
+  gpu:
+    # Do not execute untrusted pull requests on a self-hosted runner.
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: [self-hosted, linux, x64, gpu]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: distribution
+          path: dist
+      - name: Isolate package installation
+        run: |
+          python3 -m venv --system-site-packages "$RUNNER_TEMP/colortransfer-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "$RUNNER_TEMP/colortransfer-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/bin" >> "$GITHUB_PATH"
+      - run: python -m pip install pytest numpy Pillow matplotlib 'torch>=2.6' 'triton>=3.2'
+      - run: python -m pip install --force-reinstall --no-deps dist/*.whl
+      - name: Require a real NVIDIA GPU runtime
+        run: |
+          python - <<'PY'
+          import torch, triton, colortransfer_triton
+          assert torch.cuda.is_available(), 'GPU tests must not silently skip'
+          assert torch.version.hip is None, 'NVIDIA CUDA is required'
+          print(torch.cuda.get_device_name(), torch.__version__, triton.__version__)
+          print(colortransfer_triton.__file__)
+          PY
+      - run: python -m pytest -q tests
+      - run: python benchmarks/benchmark.py --check-only --torch-reference
+      - run: python benchmarks/benchmark.py --colorfm --colorfm-steps 20 --check-only
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, cpu, gpu]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: distribution
+          path: dist
+      - name: Create checksums
+        working-directory: dist
+        run: sha256sum *.whl *.tar.gz > SHA256SUMS
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          args=()
+          if [[ "$GITHUB_REF_NAME" =~ (a|b|rc)[0-9]+$ ]]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes "${args[@]}"

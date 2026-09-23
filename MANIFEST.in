@@ -1,0 +1,7 @@
+include README.md README.zh-CN.md LICENSE
+recursive-include assets *.png *.pdf
+recursive-include benchmarks *.py
+recursive-include tests *.py
+recursive-include tools *.py
+recursive-include examples *.py *.png
+recursive-include .github *.yml *.yaml
