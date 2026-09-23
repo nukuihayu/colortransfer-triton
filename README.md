@@ -9,11 +9,11 @@ color transfer with Triton GPU kernels and a PyTorch tensor API. No pretrained w
 
 ![Two aligned color transfer comparisons](assets/aligned.png)
 
-**Figure 1.** Aligned pairs: Astronaut cool-cast recovery and Chelsea warm grading. [PDF](assets/aligned.pdf)
+**Figure 1.** Aligned pairs: Astronaut cool-cast recovery and Chelsea warm grading.
 
 ![Two different-content color transfer comparisons](assets/unaligned.png)
 
-**Figure 2.** Different-content pairs: Astronaut → Coffee and Coffee → Chelsea. [PDF](assets/unaligned.pdf)
+**Figure 2.** Different-content pairs: Astronaut → Coffee and Coffee → Chelsea.
 
 ## Get started
 

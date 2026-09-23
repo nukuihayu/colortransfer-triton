@@ -9,11 +9,11 @@ ColorTransfer Triton 使用 Triton GPU 内核实现 AdaIN、Wavelet、Sliced OT�
 
 ![两组同构颜色迁移对比](assets/aligned.png)
 
-**图 1.** 同构：Astronaut 冷色恢复、Chelsea 暖色迁移。[PDF](assets/aligned.pdf)
+**图 1.** 同构：Astronaut 冷色恢复、Chelsea 暖色迁移。
 
 ![两组异构颜色迁移对比](assets/unaligned.png)
 
-**图 2.** 异构：Astronaut → Coffee、Coffee → Chelsea。[PDF](assets/unaligned.pdf)
+**图 2.** 异构：Astronaut → Coffee、Coffee → Chelsea。
 
 ## 快速开始
 
