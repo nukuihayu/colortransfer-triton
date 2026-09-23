@@ -71,9 +71,14 @@ OT/ColorFM 使用采样拟合与 3D LUT 近似，通过 `ct.fit_lut` 或 `ct.fit
 
 ```python
 lut = ct.fit_lut(
-    source, reference,
-    method="sinkhorn", samples=1024, lut_size=33,
-    epsilon=0.03, iterations=100, seed=0,
+    source,
+    reference,
+    method="sinkhorn",
+    samples=1024,
+    lut_size=33,
+    epsilon=0.03,
+    iterations=100,
+    seed=0,
 )
 result = lut(source, strength=0.8)
 ```
