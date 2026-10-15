@@ -132,3 +132,8 @@ python -m pytest -q
 ## License
 
 [MIT](LICENSE). Example photographs from scikit-image: Astronaut (NASA, public domain), Chelsea (Stefan van der Walt, CC0), Coffee (Rachel Michetti, CC0).
+
+## Publishing
+
+Version tags automatically build and publish to PyPI after CI passes.
+See [RELEASING.md](RELEASING.md) for one-time Trusted Publisher setup and release steps.

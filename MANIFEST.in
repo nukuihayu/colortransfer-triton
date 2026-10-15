@@ -5,3 +5,4 @@ recursive-include tests *.py
 recursive-include tools *.py
 recursive-include examples *.py *.png
 recursive-include .github *.yml *.yaml
+include RELEASING.md

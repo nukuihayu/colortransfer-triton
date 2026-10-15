@@ -128,3 +128,8 @@ python -m pytest -q
 ## 许可证
 
 [MIT](LICENSE)。示例照片来自 scikit-image：Astronaut（NASA，公有领域）、Chelsea（Stefan van der Walt，CC0）、Coffee（Rachel Michetti，CC0）。
+
+## 发布
+
+推送版本标签后，CI 检查通过即自动构建并发布到 PyPI。
+首次需要配置 Trusted Publisher，详见 [RELEASING.md](RELEASING.md)。
